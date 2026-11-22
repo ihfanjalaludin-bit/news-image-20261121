@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """news-image-20261121: draw a one-page news digest for Sat 21 Nov 2026.
 
-Pure Python 3 standard library. Parses real TrueType fonts (DejaVu) and
+Pure Python 3 standard library. Parses real TrueType fonts (DejaVu,
+vendored in fonts/ so the grader image needs no system fonts) and
 rasterises their glyph outlines itself, draws vector illustrations for four
 stories, and writes a deterministic PNG to $MAKEFUN_OUTPUT_DIR/entry.png
 (or /output/entry.png). No network, no randomness, no timestamps in output.
@@ -13,19 +14,36 @@ import sys
 import zlib
 
 # ---------------------------------------------------------------- fonts
+# Fonts are vendored in fonts/ next to this file: the grader image has
+# no system fonts, so /usr/share/fonts paths must never be the only copy.
+# The vendored file is tried first; system paths stay as local fallbacks.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def _font_path(filename, system_path):
+    """Prefer the font bundled in this repo; fall back to the system copy."""
+    local = os.path.join(_HERE, "fonts", filename)
+    if os.path.exists(local):
+        return local
+    return system_path
+
+
 FONT_CANDIDATES = {
     "sans": [
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        _font_path("DejaVuSans.ttf",
+                   "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
         "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
         "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
     ],
     "sans_bold": [
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        _font_path("DejaVuSans-Bold.ttf",
+                   "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
         "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
         "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf",
     ],
     "serif_bold": [
-        "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf",
+        _font_path("DejaVuSerif-Bold.ttf",
+                   "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf"),
         "/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf",
         "/usr/share/fonts/truetype/noto/NotoSerif-Bold.ttf",
     ],
